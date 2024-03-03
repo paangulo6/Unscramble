@@ -76,9 +76,10 @@ fun GameScreen() {
             style = typography.titleLarge,
         )
         GameLayout(
-            onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
-            onKeyboardDone = { },
             currentScrambledWord = gameUiState.currentScrambledWord,
+            userGuess = gameViewModel.userGuess,
+            onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
+            onKeyboardDone = { gameViewModel.checkUserGuess() }
         )
         Column(
             modifier = Modifier
@@ -89,13 +90,13 @@ fun GameScreen() {
         ) {
 
             Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = { }
+                modifier = modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(start = 8.dp),
+                onClick = { gameViewModel.checkUserGuess() }
             ) {
-                Text(
-                    text = stringResource(R.string.submit),
-                    fontSize = 16.sp
-                )
+                Text(stringResource(R.string.submit))
             }
 
             OutlinedButton(
@@ -135,6 +136,7 @@ fun GameStatus(
 @Composable
 fun GameLayout(
     currentScrambledWord: String,
+    isGuessWrong: Boolean,
     userGuess: String,
     onUserGuessChanged: (String) -> Unit,
     onKeyboardDone: () -> Unit,
@@ -148,7 +150,15 @@ fun GameLayout(
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            isError = isGuessWrong,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { onKeyboardDone() }
+            ),
+        )
         ) {
             Text(
                 text = currentScrambledWord,
