@@ -15,8 +15,14 @@ class GameViewModel : ViewModel() {
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
     private lateinit var currentWord: String
 
+
+
     // Set of words used in the game
     private var usedWords: MutableSet<String> = mutableSetOf()
+
+
+    var userGuess by mutableStateOf("")
+        private set
 
     private fun pickRandomWordAndShuffle(): String {
         // Continue picking up a new random word until you get one that hasn't been used before
@@ -45,6 +51,10 @@ class GameViewModel : ViewModel() {
 
     init {
         resetGame()
+    }
+
+    fun updateUserGuess(guessedWord: String){
+        userGuess = guessedWord
     }
 
 

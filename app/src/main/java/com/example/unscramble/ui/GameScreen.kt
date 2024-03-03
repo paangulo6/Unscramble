@@ -41,6 +41,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,10 +76,9 @@ fun GameScreen() {
             style = typography.titleLarge,
         )
         GameLayout(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(mediumPadding)
+            onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
+            onKeyboardDone = { },
+            currentScrambledWord = gameUiState.currentScrambledWord,
         )
         Column(
             modifier = Modifier
@@ -113,7 +114,13 @@ fun GameScreen() {
 }
 
 @Composable
-fun GameStatus(score: Int, modifier: Modifier = Modifier) {
+fun GameStatus(
+    score: Int,
+    modifier: Modifier = Modifier,
+    gameViewModel: GameViewModel = viewModel()
+
+) {
+    val gameUiState by gameViewModel.uiState.collectAsState()
     Card(
         modifier = modifier
     ) {
@@ -126,7 +133,14 @@ fun GameStatus(score: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun GameLayout(modifier: Modifier = Modifier) {
+fun GameLayout(
+    currentScrambledWord: String,
+    userGuess: String,
+    onUserGuessChanged: (String) -> Unit,
+    onKeyboardDone: () -> Unit,
+    modifier: Modifier = Modifier
+)
+{
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
 
     Card(
@@ -134,19 +148,12 @@ fun GameLayout(modifier: Modifier = Modifier) {
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(mediumPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(mediumPadding)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
-                modifier = Modifier
-                    .clip(shapes.medium)
-                    .background(colorScheme.surfaceTint)
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                    .align(alignment = Alignment.End),
-                text = stringResource(R.string.word_count, 0),
-                style = typography.titleMedium,
-                color = colorScheme.onPrimary
+                text = currentScrambledWord,
+                fontSize = 45.sp,
+                modifier = modifier.align(Alignment.CenterHorizontally)
             )
             Text(
                 text = "scrambleun",
