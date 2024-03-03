@@ -54,11 +54,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.unscramble.R
 import com.example.unscramble.ui.theme.UnscrambleTheme
 
 @Composable
-fun GameScreen() {
+fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
+    val gameUiState by gameViewModel.uiState.collectAsState()
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
 
     Column(
@@ -76,10 +78,16 @@ fun GameScreen() {
             style = typography.titleLarge,
         )
         GameLayout(
-            currentScrambledWord = gameUiState.currentScrambledWord,
-            userGuess = gameViewModel.userGuess,
             onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
-            onKeyboardDone = { gameViewModel.checkUserGuess() }
+            wordCount = gameUiState.currentWordCount,
+            userGuess = gameViewModel.userGuess,
+            onKeyboardDone = { gameViewModel.checkUserGuess() },
+            currentScrambledWord = gameUiState.currentScrambledWord,
+            isGuessWrong = gameUiState.isGuessedWordWrong,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(mediumPadding)
         )
         Column(
             modifier = Modifier
@@ -90,13 +98,13 @@ fun GameScreen() {
         ) {
 
             Button(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(start = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 onClick = { gameViewModel.checkUserGuess() }
             ) {
-                Text(stringResource(R.string.submit))
+                Text(
+                    text = stringResource(R.string.submit),
+                    fontSize = 16.sp
+                )
             }
 
             OutlinedButton(
@@ -111,6 +119,13 @@ fun GameScreen() {
         }
 
         GameStatus(score = 0, modifier = Modifier.padding(20.dp))
+
+        if (gameUiState.isGameOver) {
+            FinalScoreDialog(
+                score = gameUiState.score,
+                onPlayAgain = { gameViewModel.resetGame() }
+            )
+        }
     }
 }
 
@@ -118,10 +133,7 @@ fun GameScreen() {
 fun GameStatus(
     score: Int,
     modifier: Modifier = Modifier,
-    gameViewModel: GameViewModel = viewModel()
-
 ) {
-    val gameUiState by gameViewModel.uiState.collectAsState()
     Card(
         modifier = modifier
     ) {
@@ -136,6 +148,7 @@ fun GameStatus(
 @Composable
 fun GameLayout(
     currentScrambledWord: String,
+    wordCount: Int,
     isGuessWrong: Boolean,
     userGuess: String,
     onUserGuessChanged: (String) -> Unit,
@@ -150,20 +163,19 @@ fun GameLayout(
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            isError = isGuessWrong,
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = { onKeyboardDone() }
-            ),
-        )
+            verticalArrangement = Arrangement.spacedBy(mediumPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(mediumPadding)
         ) {
             Text(
-                text = currentScrambledWord,
-                fontSize = 45.sp,
-                modifier = modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier
+                    .clip(shapes.medium)
+                    .background(colorScheme.surfaceTint)
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                    .align(alignment = Alignment.End),
+                text = stringResource(R.string.word_count, wordCount),
+                style = typography.titleMedium,
+                color = colorScheme.onPrimary
             )
             Text(
                 text = "scrambleun",
